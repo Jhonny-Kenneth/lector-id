@@ -1,36 +1,55 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Lector ID (Next.js 14)
 
-## Getting Started
+Aplicacion de escritorio web para capturar frente y reverso de una cedula con camara USB, generar un PDF de 2 paginas y enviarlo por correo corporativo.
 
-First, run the development server:
+## Requisitos
+
+- Node.js 18+
+- Camara USB conectada al PC
+- HTTPS en produccion (Chrome/Edge exigen HTTPS para usar camara)
+
+## Instalacion
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abrir `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Variables de entorno
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Crea un archivo `.env.local` con el siguiente contenido (ejemplo sin secretos):
 
-## Learn More
+```bash
+SMTP_HOST=smtp.tuempresa.com
+SMTP_PORT=587
+SMTP_USER=usuario@tuempresa.com
+SMTP_PASS=tu_password
+EMAIL_TO=recepcion@tuempresa.com
+EMAIL_FROM=lector-id@tuempresa.com
+NEXT_PUBLIC_EMAIL_TO=recepcion@tuempresa.com
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Flujo de uso
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Iniciar camara y elegir el dispositivo USB.
+2. Capturar el frente de la cedula.
+3. Capturar el reverso de la cedula.
+4. Verificar previsualizaciones.
+5. Descargar PDF o enviar por correo.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Troubleshooting
 
-## Deploy on Vercel
+- **Permiso denegado / camara no disponible**: verifica permisos del navegador y que la pagina este en HTTPS.
+- **No se detectan camaras**: desconecta y reconecta la camara, luego recarga la pagina.
+- **PDF muy grande**: revisa que las capturas no sean excesivamente pesadas; el limite de envio es 8MB.
+- **Fallo SMTP**: valida host, puerto, usuario y password en `.env.local`.
+- **Abrir app de correo**: usa `NEXT_PUBLIC_EMAIL_TO` para definir el destino en el boton de mailto.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Estructura clave
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `app/page.tsx`: UI principal y flujo de captura.
+- `components/CameraCapture.tsx`: manejo de camara USB y fallback.
+- `lib/pdf.ts`: generacion de PDF con pdf-lib.
+- `app/api/send/route.ts`: envio SMTP con nodemailer.
