@@ -160,45 +160,47 @@ export default function Home() {
   };
 
   const statusStyles: Record<StatusState["type"], string> = {
-    idle: "border-slate-200 bg-slate-50 text-slate-600",
-    info: "border-sky-200 bg-sky-50 text-sky-700",
-    success: "border-emerald-200 bg-emerald-50 text-emerald-700",
-    error: "border-rose-200 bg-rose-50 text-rose-700",
+    idle: "border-slate-700/60 bg-slate-900/60 text-slate-300",
+    info: "border-sky-800/70 bg-sky-950/60 text-sky-200",
+    success: "border-emerald-800/70 bg-emerald-950/60 text-emerald-200",
+    error: "border-rose-800/70 bg-rose-950/60 text-rose-200",
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 px-8 py-10 text-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 px-8 py-10 text-slate-100">
       <header className="mx-auto mb-8 max-w-6xl">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-semibold tracking-tight">
               Captura de cedulas USB
             </h1>
-            <p className="mt-2 max-w-2xl text-sm text-slate-600">
+            <p className="mt-2 max-w-2xl text-sm text-slate-300">
               Captura frente y reverso desde una camara USB, genera un PDF de dos
               paginas y envialo por correo corporativo.
             </p>
           </div>
-          <div className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-500 shadow-sm">
-            Requiere HTTPS para camara en produccion
+          <div className="flex items-center justify-center rounded-2xl border border-slate-700/60 bg-slate-900/80 p-3 shadow-lg shadow-black/20">
+            <img src="https://maunaloa.com.do/wp-content/uploads/2024/05/Logo-MAunaloa-2.png" alt="Logo" className="h-16 w-auto sm:h-20" />
           </div>
         </div>
       </header>
 
       <main className="mx-auto grid max-w-6xl grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
-        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-lg">
+        <section className="rounded-3xl border border-slate-800/70 bg-slate-900/80 p-6 shadow-xl shadow-black/30">
           <div className="mb-5 flex items-center justify-between gap-4">
             <div>
               <h2 className="text-lg font-semibold">Camara en vivo</h2>
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-slate-400">
                 Selecciona la camara y captura el lado actual.
               </p>
             </div>
-            <div className="flex items-center gap-2 rounded-full bg-slate-100 p-1 text-xs font-semibold text-slate-600">
+            <div className="flex items-center gap-2 rounded-full bg-slate-800/80 p-1 text-xs font-semibold text-slate-300">
               <button
                 type="button"
                 className={`rounded-full px-3 py-1 ${
-                  captureSide === "front" ? "bg-white text-slate-900" : ""
+                  captureSide === "front"
+                    ? "bg-slate-100 text-slate-900"
+                    : ""
                 }`}
                 onClick={() => setCaptureSide("front")}
               >
@@ -207,7 +209,9 @@ export default function Home() {
               <button
                 type="button"
                 className={`rounded-full px-3 py-1 ${
-                  captureSide === "back" ? "bg-white text-slate-900" : ""
+                  captureSide === "back"
+                    ? "bg-slate-100 text-slate-900"
+                    : ""
                 }`}
                 onClick={() => setCaptureSide("back")}
               >
@@ -219,21 +223,21 @@ export default function Home() {
         </section>
 
         <section className="flex flex-col gap-6">
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-lg">
+          <div className="rounded-3xl border border-slate-800/70 bg-slate-900/80 p-6 shadow-xl shadow-black/30">
             <h2 className="text-lg font-semibold">Previsualizaciones</h2>
             <div className="mt-4 grid gap-4">
-              <div className="rounded-2xl border border-slate-200 p-4">
+              <div className="rounded-2xl border border-slate-800/70 bg-slate-950/60 p-4">
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-semibold">Frente</p>
                   <button
                     type="button"
                     onClick={clearFront}
-                    className="text-xs font-semibold text-slate-500 hover:text-slate-900"
+                    className="text-xs font-semibold text-slate-400 hover:text-white"
                   >
                     Repetir
                   </button>
                 </div>
-                <div className="mt-3 flex h-36 items-center justify-center overflow-hidden rounded-xl bg-slate-100">
+                <div className="mt-3 flex h-36 items-center justify-center overflow-hidden rounded-xl bg-slate-900">
                   {frontImage ? (
                     <img
                       src={frontImage}
@@ -241,22 +245,22 @@ export default function Home() {
                       className="h-full w-full object-cover"
                     />
                   ) : (
-                    <span className="text-xs text-slate-400">Sin captura</span>
+                    <span className="text-xs text-slate-500">Sin captura</span>
                   )}
                 </div>
               </div>
-              <div className="rounded-2xl border border-slate-200 p-4">
+              <div className="rounded-2xl border border-slate-800/70 bg-slate-950/60 p-4">
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-semibold">Reverso</p>
                   <button
                     type="button"
                     onClick={clearBack}
-                    className="text-xs font-semibold text-slate-500 hover:text-slate-900"
+                    className="text-xs font-semibold text-slate-400 hover:text-white"
                   >
                     Repetir
                   </button>
                 </div>
-                <div className="mt-3 flex h-36 items-center justify-center overflow-hidden rounded-xl bg-slate-100">
+                <div className="mt-3 flex h-36 items-center justify-center overflow-hidden rounded-xl bg-slate-900">
                   {backImage ? (
                     <img
                       src={backImage}
@@ -264,16 +268,16 @@ export default function Home() {
                       className="h-full w-full object-cover"
                     />
                   ) : (
-                    <span className="text-xs text-slate-400">Sin captura</span>
+                    <span className="text-xs text-slate-500">Sin captura</span>
                   )}
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-lg">
+          <div className="rounded-3xl border border-slate-800/70 bg-slate-900/80 p-6 shadow-xl shadow-black/30">
             <h2 className="text-lg font-semibold">Entrega</h2>
-            <label className="mt-4 block text-xs font-semibold uppercase text-slate-500">
+            <label className="mt-4 block text-xs font-semibold uppercase text-slate-400">
               ID / Nombre del cliente (opcional)
             </label>
             <input
@@ -281,14 +285,14 @@ export default function Home() {
               value={clientName}
               onChange={(event) => setClientName(event.target.value)}
               placeholder="Ej: Cliente_123"
-              className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-300"
+              className="mt-2 w-full rounded-xl border border-slate-700/70 bg-slate-950/60 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-600"
             />
             <div className="mt-4 grid gap-3">
               <button
                 type="button"
                 onClick={handleDownload}
                 disabled={!canGenerate || isDownloading}
-                className="w-full rounded-full bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow hover:bg-slate-800 disabled:opacity-50"
+                className="w-full rounded-full bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-900 shadow hover:bg-white disabled:opacity-50"
               >
                 {isDownloading ? "Generando PDF..." : "Generar / Descargar PDF"}
               </button>
@@ -296,13 +300,13 @@ export default function Home() {
                 type="button"
                 onClick={handleOpenEmail}
                 disabled={!canGenerate || isSending}
-                className="w-full rounded-full border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow hover:bg-slate-50 disabled:opacity-50"
+                className="w-full rounded-full border border-slate-700/70 bg-slate-900/80 px-4 py-3 text-sm font-semibold text-slate-200 shadow hover:bg-slate-800 disabled:opacity-50"
               >
                 {isSending ? "Preparando correo..." : "Abrir app de correo"}
               </button>
             </div>
             {!canGenerate && (
-              <p className="mt-3 text-xs text-slate-500">
+              <p className="mt-3 text-xs text-slate-400">
                 Necesitas ambas capturas para habilitar el PDF y el envio.
               </p>
             )}

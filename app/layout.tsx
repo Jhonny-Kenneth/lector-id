@@ -15,6 +15,12 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "Captura de Cedulas",
   description: "Captura de frente y reverso con camara USB y envio por correo.",
+  icons: {
+    icon: [
+      { url: "/icon.png", type: "image/png" },
+      { url: "/favicon.ico" },
+    ],
+  },
 };
 
 export default function RootLayout({

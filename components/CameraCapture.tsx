@@ -170,7 +170,11 @@ export default function CameraCapture({ onCapture, disabled }: CameraCaptureProp
         <button
           type="button"
           onClick={isActive ? stopCamera : startCamera}
-          className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-slate-800 disabled:opacity-50"
+          className={`rounded-full px-4 py-2 text-sm font-semibold shadow disabled:opacity-50 ${
+            isActive
+                ? "bg-slate-900 text-red-500 hover:bg-slate-800"
+                : "bg-orange-500 text-slate-900 hover:bg-orange-400"
+          }`}
           disabled={disabled}
         >
           {isActive ? "Detener camara" : "Iniciar camara"}
