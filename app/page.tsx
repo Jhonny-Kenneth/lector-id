@@ -9,16 +9,6 @@ type StatusState = {
   message: string;
 };
 
-const buildMailSubject = (name?: string) => {
-  const now = new Date();
-  const pad = (value: number) => String(value).padStart(2, "0");
-  const date = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(
-    now.getDate()
-  )}`;
-  const time = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
-  const subjectName = name?.trim() || "Cliente";
-  return `Cedula - ${subjectName} - ${date} ${time}`;
-};
 
 export default function Home() {
   const [clientName, setClientName] = useState("");
@@ -31,7 +21,7 @@ export default function Home() {
   });
   const [isDownloading, setIsDownloading] = useState(false);
   const [isSending, setIsSending] = useState(false);
-  const emailTo = process.env.NEXT_PUBLIC_EMAIL_TO || "";
+  const isNameValid = clientName.trim().length > 0;
 
   const handleCapture = (dataUrl: string) => {
     if (captureSide === "front") {
@@ -68,7 +58,7 @@ export default function Home() {
     });
   };
 
-  const canGenerate = Boolean(frontImage && backImage);
+  const canGenerate = Boolean(frontImage && backImage && isNameValid);
 
   const buildPdfBytes = async () => {
     if (!frontImage || !backImage) {
@@ -77,8 +67,24 @@ export default function Home() {
     return createIdPdf(frontImage, backImage, { clientName });
   };
 
+  const toBase64 = (bytes: Uint8Array) => {
+    let binary = "";
+    const chunkSize = 0x8000;
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+      binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+    }
+    return btoa(binary);
+  };
+
   const handleDownload = async () => {
-    if (!canGenerate) {
+    if (!clientName.trim()) {
+      setStatus({
+        type: "error",
+        message: "El nombre del cliente es obligatorio.",
+      });
+      return;
+    }
+    if (!frontImage || !backImage) {
       setStatus({
         type: "error",
         message: "Debes capturar frente y reverso antes de descargar.",
@@ -108,18 +114,18 @@ export default function Home() {
   };
 
 
-  const handleOpenEmail = async () => {
-    if (!canGenerate) {
+  const handleSendEmail = async () => {
+    if (!clientName.trim()) {
       setStatus({
         type: "error",
-        message: "Debes capturar frente y reverso antes de enviar.",
+        message: "El nombre del cliente es obligatorio.",
       });
       return;
     }
-    if (!emailTo) {
+    if (!frontImage || !backImage) {
       setStatus({
         type: "error",
-        message: "No hay correo destino configurado en NEXT_PUBLIC_EMAIL_TO.",
+        message: "Debes capturar frente y reverso antes de enviar.",
       });
       return;
     }
@@ -127,32 +133,38 @@ export default function Home() {
     try {
       const pdfBytes = await buildPdfBytes();
       const filename = buildPdfFilename(clientName);
-      const blob = new Blob([pdfBytes], { type: "application/pdf" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = filename;
-      link.click();
-      URL.revokeObjectURL(url);
 
-      const subject = buildMailSubject(clientName);
-      const body = [
-        "Adjunto el PDF de la cedula.",
-        "",
-        "Nota: el archivo se descargo automaticamente; adjuntalo al correo.",
-      ].join("\n");
-      const mailto = `mailto:${encodeURIComponent(emailTo)}?subject=${encodeURIComponent(
-        subject
-      )}&body=${encodeURIComponent(body)}`;
-      window.location.href = mailto;
+      const downloadBlob = new Blob([pdfBytes], { type: "application/pdf" });
+      const downloadUrl = URL.createObjectURL(downloadBlob);
+      const downloadLink = document.createElement("a");
+      downloadLink.href = downloadUrl;
+      downloadLink.download = filename;
+      downloadLink.click();
+      URL.revokeObjectURL(downloadUrl);
+
+      const bytes = pdfBytes instanceof Uint8Array ? pdfBytes : new Uint8Array(pdfBytes);
+      const pdfBase64 = toBase64(bytes);
+      const response = await fetch("/api/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pdfBase64, filename, clientName }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.ok) {
+        setStatus({
+          type: "error",
+          message: data.message || "No fue posible enviar el correo.",
+        });
+        return;
+      }
       setStatus({
         type: "success",
-        message: "Se abrio tu app de correo. Adjunta el PDF descargado.",
+        message: "Correo enviado a jhonnyk12sd@gmail.com.",
       });
     } catch {
       setStatus({
         type: "error",
-        message: "No se pudo generar el PDF para el correo.",
+        message: "No fue posible enviar el correo.",
       });
     } finally {
       setIsSending(false);
@@ -167,7 +179,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 px-8 py-10 text-slate-100">
+    <div className="min-h-screen bg-linear-to-br from-slate-950 via-slate-900 to-slate-950 px-8 py-10 text-slate-100">
       <header className="mx-auto mb-8 max-w-6xl">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
@@ -278,13 +290,14 @@ export default function Home() {
           <div className="rounded-3xl border border-slate-800/70 bg-slate-900/80 p-6 shadow-xl shadow-black/30">
             <h2 className="text-lg font-semibold">Entrega</h2>
             <label className="mt-4 block text-xs font-semibold uppercase text-slate-400">
-              ID / Nombre del cliente (opcional)
+              ID / Nombre del cliente (obligatorio)
             </label>
             <input
               type="text"
               value={clientName}
               onChange={(event) => setClientName(event.target.value)}
               placeholder="Ej: Cliente_123"
+              required
               className="mt-2 w-full rounded-xl border border-slate-700/70 bg-slate-950/60 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-600"
             />
             <div className="mt-4 grid gap-3">
@@ -298,16 +311,16 @@ export default function Home() {
               </button>
               <button
                 type="button"
-                onClick={handleOpenEmail}
+                onClick={handleSendEmail}
                 disabled={!canGenerate || isSending}
                 className="w-full rounded-full border border-slate-700/70 bg-slate-900/80 px-4 py-3 text-sm font-semibold text-slate-200 shadow hover:bg-slate-800 disabled:opacity-50"
               >
-                {isSending ? "Preparando correo..." : "Abrir app de correo"}
+                {isSending ? "Enviando correo..." : "Enviar correo"}
               </button>
             </div>
             {!canGenerate && (
               <p className="mt-3 text-xs text-slate-400">
-                Necesitas ambas capturas para habilitar el PDF y el envio.
+                Necesitas el nombre y ambas capturas para habilitar el PDF y el envio.
               </p>
             )}
           </div>
