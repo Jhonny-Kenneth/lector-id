@@ -94,8 +94,9 @@ export default function Home() {
     setIsDownloading(true);
     try {
       const pdfBytes = await buildPdfBytes();
+      const safeBytes = new Uint8Array(pdfBytes);
       const filename = buildPdfFilename(clientName);
-      const blob = new Blob([pdfBytes], { type: "application/pdf" });
+      const blob = new Blob([safeBytes], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
@@ -132,9 +133,10 @@ export default function Home() {
     setIsSending(true);
     try {
       const pdfBytes = await buildPdfBytes();
+      const safeBytes = new Uint8Array(pdfBytes);
       const filename = buildPdfFilename(clientName);
 
-      const downloadBlob = new Blob([pdfBytes], { type: "application/pdf" });
+      const downloadBlob = new Blob([safeBytes], { type: "application/pdf" });
       const downloadUrl = URL.createObjectURL(downloadBlob);
       const downloadLink = document.createElement("a");
       downloadLink.href = downloadUrl;
@@ -142,7 +144,7 @@ export default function Home() {
       downloadLink.click();
       URL.revokeObjectURL(downloadUrl);
 
-      const bytes = pdfBytes instanceof Uint8Array ? pdfBytes : new Uint8Array(pdfBytes);
+      const bytes = pdfBytes instanceof Uint8Array ? pdfBytes : safeBytes;
       const pdfBase64 = toBase64(bytes);
       const response = await fetch("/api/send", {
         method: "POST",
