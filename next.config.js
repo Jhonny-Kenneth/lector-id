@@ -6,7 +6,7 @@ const nextConfig = {
   // Needed when the app is served from a subpath like /lectorid
   basePath,
   assetPrefix: basePath ? `${basePath}/` : "",
-  output: 'export',
+  output: 'standalone',
 };
 
 module.exports = nextConfig;
