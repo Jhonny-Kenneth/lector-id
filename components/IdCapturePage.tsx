@@ -14,6 +14,8 @@ type IdCapturePageProps = {
   title?: string;
   subtitle?: string;
   successRecipient?: string;
+  logoSrc?: string;
+  logoAlt?: string;
 };
 
 export default function IdCapturePage({
@@ -21,6 +23,8 @@ export default function IdCapturePage({
   title = "Captura de cedulas USB",
   subtitle = "Captura frente y reverso desde una camara USB, genera un PDF de dos paginas y envialo por correo corporativo.",
   successRecipient = "jhonnyk12sd@gmail.com",
+  logoSrc = "https://maunaloa.com.do/wp-content/uploads/2024/05/Logo-MAunaloa-2.png",
+  logoAlt = "Logo",
 }: IdCapturePageProps) {
   const [clientName, setClientName] = useState("");
   const [captureSide, setCaptureSide] = useState<"front" | "back">("front");
@@ -200,8 +204,8 @@ export default function IdCapturePage({
           </div>
           <div className="flex items-center justify-center rounded-2xl border border-slate-700/60 bg-slate-900/80 p-3 shadow-lg shadow-black/20">
             <img
-              src="https://maunaloa.com.do/wp-content/uploads/2024/05/Logo-MAunaloa-2.png"
-              alt="Logo"
+              src={logoSrc}
+              alt={logoAlt}
               className="h-16 w-auto sm:h-20"
             />
           </div>

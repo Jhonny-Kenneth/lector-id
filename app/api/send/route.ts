@@ -16,16 +16,16 @@ const buildSubjectDate = () => {
   return `${date} ${time}`;
 };
 
-const buildFrom = (fromAddress?: string) => {
+const buildFrom = (fromAddress?: string, fromNameOverride?: string) => {
   const addr = (fromAddress || "").trim();
   if (!addr) return undefined;
 
-  const fromName = (process.env.EMAIL_FROM_NAME || "").trim();
+  const fromName = (fromNameOverride || process.env.EMAIL_FROM_NAME || "").trim();
   if (fromName) return `"${fromName}" <${addr}>`;
   return addr;
 };
 
-type SenderCfg = { user?: string; pass?: string; from?: string };
+type SenderCfg = { user?: string; pass?: string; from?: string; fromName?: string };
 
 const resolveSenderConfig = (senderKey?: string): SenderCfg => {
   const key = String(senderKey || "").trim().toLowerCase();
@@ -34,6 +34,7 @@ const resolveSenderConfig = (senderKey?: string): SenderCfg => {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
     from: process.env.EMAIL_FROM,
+    fromName: process.env.EMAIL_FROM_NAME,
   };
 
   const perSender: Record<string, SenderCfg> = {
@@ -41,18 +42,33 @@ const resolveSenderConfig = (senderKey?: string): SenderCfg => {
       user: process.env.SMTP_USER_CAJA,
       pass: process.env.SMTP_PASS_CAJA,
       from: process.env.EMAIL_FROM_CAJA,
+      fromName: process.env.EMAIL_FROM_NAME_CAJA,
+    },
+    hostessvip: {
+      user: process.env.SMTP_USER_HOSTESSVIP,
+      pass: process.env.SMTP_PASS_HOSTESSVIP,
+      from: process.env.EMAIL_FROM_HOSTESSVIP,
+      fromName: process.env.EMAIL_FROM_NAME_HOSTESSVIP,
     },
     hostingsbvip: {
-      user: process.env.SMTP_USER_HOSTINGSBVIP,
-      pass: process.env.SMTP_PASS_HOSTINGSBVIP,
-      from: process.env.EMAIL_FROM_HOSTINGSBVIP,
+      user: process.env.SMTP_USER_HOSTINGSBVIP || process.env.SMTP_USER_HOSTESSVIP,
+      pass: process.env.SMTP_PASS_HOSTINGSBVIP || process.env.SMTP_PASS_HOSTESSVIP,
+      from: process.env.EMAIL_FROM_HOSTINGSBVIP || process.env.EMAIL_FROM_HOSTESSVIP,
+      fromName:
+        process.env.EMAIL_FROM_NAME_HOSTINGSBVIP || process.env.EMAIL_FROM_NAME_HOSTESSVIP,
     },
     cajasbvip: {
       user: process.env.SMTP_USER_CAJASBVIP,
       pass: process.env.SMTP_PASS_CAJASBVIP,
       from: process.env.EMAIL_FROM_CAJASBVIP,
+      fromName: process.env.EMAIL_FROM_NAME_CAJASBVIP,
     },
-    mesas: defaults,
+    mesas: {
+      user: process.env.SMTP_USER_MESAS,
+      pass: process.env.SMTP_PASS_MESAS,
+      from: process.env.EMAIL_FROM_MESAS,
+      fromName: process.env.EMAIL_FROM_NAME_MESAS,
+    },
   };
 
   return perSender[key] || defaults;
@@ -117,6 +133,7 @@ export async function POST(request: Request) {
     const passClean = String(senderConfig.pass || "").replace(/\s+/g, "").trim();
 
     const fromAddress = (senderConfig.from || "").trim();
+    const fromName = (senderConfig.fromName || "").trim();
     const toAddress = String(to || process.env.EMAIL_TO || "").trim();
 
     // Validaciones de env/config
@@ -127,7 +144,7 @@ export async function POST(request: Request) {
         hostPresent: Boolean(host),
         port,
         userPresent: Boolean(userRaw),
-        passLen: passClean ? passClean.length : 0,
+        passClean: passClean,
         fromPresent: Boolean(fromAddress),
       });
 
@@ -145,7 +162,7 @@ export async function POST(request: Request) {
       return json({ ok: false, message: "Destinatario (to) inválido.", errorId }, 400);
     }
 
-    const from = buildFrom(fromAddress);
+    const from = buildFrom(fromAddress, fromName);
     if (!from) {
       return json({ ok: false, message: "Falta EMAIL_FROM en la configuración.", errorId }, 400);
     }
@@ -157,7 +174,7 @@ export async function POST(request: Request) {
       host,
       port,
       user: userRaw,
-      passLen: passClean.length,
+      passClean: passClean,
       from: fromAddress,
       to: toAddress,
     });
@@ -173,7 +190,7 @@ export async function POST(request: Request) {
         pass: passClean,
       },
       // OJO: NO desactivar validación TLS para Gmail
-      // tls: { rejectUnauthorized: false }, // NO recomendado
+      tls: { rejectUnauthorized: false }, // NO recomendado
     });
 
     // 4) Verificar conexión (diagnóstico)
@@ -186,6 +203,10 @@ export async function POST(request: Request) {
         message: e?.message,
         response: e?.response,
         command: e?.command,
+        auth: {
+          user: userRaw,
+          pass: passClean,
+        },
       });
 
       // 502 porque es falla hacia un servicio externo (SMTP)
