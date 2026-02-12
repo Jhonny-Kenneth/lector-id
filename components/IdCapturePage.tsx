@@ -22,7 +22,7 @@ export default function IdCapturePage({
   senderKey,
   title = "Captura de cedulas USB",
   subtitle = "Captura frente y reverso desde una camara USB, genera un PDF de dos paginas y envialo por correo corporativo.",
-  successRecipient = "jhonnyk12sd@gmail.com",
+  successRecipient = "dsousa@superbets.com",
   logoSrc = "https://maunaloa.com.do/wp-content/uploads/2024/05/Logo-MAunaloa-2.png",
   logoAlt = "Logo",
 }: IdCapturePageProps) {
