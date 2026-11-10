@@ -15,12 +15,8 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "Captura de Cedulas",
   description: "Captura de frente y reverso con camara USB y envio por correo.",
-  icons: {
-    icon: [
-      { url: "/icon.png", type: "image/png" },
-      { url: "/favicon.ico" },
-    ],
-  },
+  // Favicon por defecto (Maunaloa); app/(superbets)/layout.tsx lo reemplaza en las paginas de SuperBets.
+  icons: { icon: "/icon-maunaloa.png" },
 };
 
 export default function RootLayout({
