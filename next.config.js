@@ -6,7 +6,6 @@ const nextConfig = {
   // Needed when the app is served from a subpath like /lectorid
   basePath,
   assetPrefix: basePath ? `${basePath}/` : "",
-  output: 'standalone',
   // URLs anteriores -> nuevas, para que los accesos guardados sigan funcionando
   async redirects() {
     return [

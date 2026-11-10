@@ -47,6 +47,14 @@ const smtpFromEnv = (suffix: string, fallback?: string) => {
 
 // La clave es el nombre de la carpeta en app/ (senderKey que envia cada pagina).
 const AREAS: Record<string, SenderCfg> = {
+  // Hostess Maunaloa usa las variables generales (SMTP_USER, SMTP_PASS, EMAIL_FROM, EMAIL_FROM_NAME)
+  "hostess-maunaloa": {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+    from: process.env.EMAIL_FROM,
+    fromName: process.env.EMAIL_FROM_NAME,
+    to: MAUNALOA_TO,
+  },
   "caja-maunaloa": { ...smtpFromEnv("CAJA"), to: MAUNALOA_TO },
   "mesas-maunaloa": { ...smtpFromEnv("MESAS"), to: MAUNALOA_TO },
   "caja-superbets-vip": { ...smtpFromEnv("CAJASBVIP"), to: MAUNALOA_TO },

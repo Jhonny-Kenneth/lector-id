@@ -53,6 +53,7 @@ Configura en Vercel las variables SMTP indicadas arriba y las credenciales por a
 
 | Ruta | Sufijo SMTP | Destinatario |
 | --- | --- | --- |
+| `/hostess-maunaloa` | sin sufijo (`SMTP_USER`, `SMTP_PASS`, ...) | `EMAIL_TO` |
 | `/caja-maunaloa` | `_CAJA` | `EMAIL_TO` (por defecto aelhassani@maunaloa.com.do) |
 | `/mesas-maunaloa` | `_MESAS` | `EMAIL_TO` |
 | `/caja-superbets-vip` | `_CAJASBVIP` | `EMAIL_TO` |
