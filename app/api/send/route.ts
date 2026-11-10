@@ -30,7 +30,7 @@ type SenderCfg = { user?: string; pass?: string; from?: string; fromName?: strin
 
 // Destinatarios: las areas Maunaloa/VIP usan EMAIL_TO; las cajas nuevas de SuperBets usan EMAIL_TO_SUPERBETS.
 const MAUNALOA_TO = process.env.EMAIL_TO || "aelhassani@maunaloa.com.do";
-const SUPERBETS_TO = process.env.EMAIL_TO_SUPERBETS || "jhonny.kenneth@superbets.do";
+const SUPERBETS_TO = process.env.EMAIL_TO_SUPERBETS || "jhonny.kenneth@superbets.com";
 
 // Lee SMTP_USER_<suffix>, SMTP_PASS_<suffix>, EMAIL_FROM_<suffix> y EMAIL_FROM_NAME_<suffix>.
 // Si no existen, usa las credenciales de `fallback` (otra area ya configurada).
