@@ -43,7 +43,26 @@ NEXT_PUBLIC_EMAIL_TO=recepcion@tuempresa.com
 
 - **Permiso denegado / camara no disponible**: verifica permisos del navegador y que la pagina este en HTTPS.
 - **No se detectan camaras**: desconecta y reconecta la camara, luego recarga la pagina.
-- **PDF muy grande**: revisa que las capturas no sean excesivamente pesadas; el limite de envio es 8MB.
+- **PDF muy grande**: revisa que las capturas no sean excesivamente pesadas; el limite de envio por correo es 3MB para respetar el limite de solicitudes de Vercel al codificar en base64.
+
+## Despliegue en Vercel
+
+Importa este repositorio como un proyecto Next.js. Usa `npm run build` como comando de compilacion y conserva el directorio de salida predeterminado.
+
+Configura en Vercel las variables SMTP indicadas arriba y las credenciales por area que utiliza `app/api/send/route.ts` (sufijos para `SMTP_USER`, `SMTP_PASS`, `EMAIL_FROM` y `EMAIL_FROM_NAME`):
+
+| Ruta | Sufijo SMTP | Destinatario |
+| --- | --- | --- |
+| `/caja-maunaloa` | `_CAJA` | `EMAIL_TO` (por defecto aelhassani@maunaloa.com.do) |
+| `/mesas-maunaloa` | `_MESAS` | `EMAIL_TO` |
+| `/caja-superbets-vip` | `_CAJASBVIP` | `EMAIL_TO` |
+| `/hostess-superbets-vip` | `_HOSTESSVIP` | `EMAIL_TO` |
+| `/caja-superbets-tiradentes` | `_TIRADENTES` (si falta, usa `_CAJASBVIP`) | `EMAIL_TO_SUPERBETS` (por defecto jhonny.kenneth@superbets.do) |
+| `/caja-superbets-san-martin` | `_SANMARTIN` (si falta, usa `_CAJASBVIP`) | `EMAIL_TO_SUPERBETS` |
+
+Las rutas anteriores (`/caja`, `/cajasbvip`, `/hostessvip`, `/mesas`) redirigen a las nuevas.
+
+Deja `NEXT_PUBLIC_BASE_PATH` vacio para servir la aplicacion desde la raiz del dominio. Las variables de `.env.local` no se suben al repositorio ni se transfieren automaticamente a Vercel. Vuelve a desplegar despues de configurar las variables. Comprueba la camara, la descarga de PDF y el envio desde cada area en la URL HTTPS publicada.
 - **Fallo SMTP**: valida host, puerto, usuario y password en `.env.local`.
 - **Abrir app de correo**: usa `NEXT_PUBLIC_EMAIL_TO` para definir el destino en el boton de mailto.
 

@@ -2,11 +2,11 @@
 
 import IdCapturePage from "@/components/IdCapturePage";
 
-export default function Hostessvip() {
+export default function CajaSuperbetsTiradentes() {
   return (
     <IdCapturePage
-      senderKey="hostessvip"
-      title="Captura de cedulas - Hostessvip"
+      senderKey="caja-superbets-tiradentes"
+      title="Captura de cedulas - Caja SuperBets Tiradentes"
       logoSrc="/superbets-logo-vertical.png"
       logoAlt="SuperBets"
     />

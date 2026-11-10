@@ -7,6 +7,15 @@ const nextConfig = {
   basePath,
   assetPrefix: basePath ? `${basePath}/` : "",
   output: 'standalone',
+  // URLs anteriores -> nuevas, para que los accesos guardados sigan funcionando
+  async redirects() {
+    return [
+      { source: '/caja', destination: '/caja-maunaloa', permanent: true },
+      { source: '/cajasbvip', destination: '/caja-superbets-vip', permanent: true },
+      { source: '/hostessvip', destination: '/hostess-superbets-vip', permanent: true },
+      { source: '/mesas', destination: '/mesas-maunaloa', permanent: true },
+    ];
+  },
 };
 
 module.exports = nextConfig;

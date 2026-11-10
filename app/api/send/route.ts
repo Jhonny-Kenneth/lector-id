@@ -4,7 +4,8 @@ import { randomUUID } from "node:crypto";
 
 export const runtime = "nodejs";
 
-const MAX_BYTES = 8 * 1024 * 1024; // 8MB
+// Leave room for base64 encoding and JSON within Vercel's request limit.
+const MAX_BYTES = 3 * 1024 * 1024;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const pad2 = (value: number) => String(value).padStart(2, "0");
@@ -25,53 +26,47 @@ const buildFrom = (fromAddress?: string, fromNameOverride?: string) => {
   return addr;
 };
 
-type SenderCfg = { user?: string; pass?: string; from?: string; fromName?: string };
+type SenderCfg = { user?: string; pass?: string; from?: string; fromName?: string; to?: string };
+
+// Destinatarios: las areas Maunaloa/VIP usan EMAIL_TO; las cajas nuevas de SuperBets usan EMAIL_TO_SUPERBETS.
+const MAUNALOA_TO = process.env.EMAIL_TO || "aelhassani@maunaloa.com.do";
+const SUPERBETS_TO = process.env.EMAIL_TO_SUPERBETS || "jhonny.kenneth@superbets.do";
+
+// Lee SMTP_USER_<suffix>, SMTP_PASS_<suffix>, EMAIL_FROM_<suffix> y EMAIL_FROM_NAME_<suffix>.
+// Si no existen, usa las credenciales de `fallback` (otra area ya configurada).
+const smtpFromEnv = (suffix: string, fallback?: string) => {
+  const env = (name: string) =>
+    process.env[`${name}_${suffix}`] || (fallback ? process.env[`${name}_${fallback}`] : undefined);
+  return {
+    user: env("SMTP_USER"),
+    pass: env("SMTP_PASS"),
+    from: env("EMAIL_FROM"),
+    fromName: env("EMAIL_FROM_NAME"),
+  };
+};
+
+// La clave es el nombre de la carpeta en app/ (senderKey que envia cada pagina).
+const AREAS: Record<string, SenderCfg> = {
+  "caja-maunaloa": { ...smtpFromEnv("CAJA"), to: MAUNALOA_TO },
+  "mesas-maunaloa": { ...smtpFromEnv("MESAS"), to: MAUNALOA_TO },
+  "caja-superbets-vip": { ...smtpFromEnv("CAJASBVIP"), to: MAUNALOA_TO },
+  "hostess-superbets-vip": { ...smtpFromEnv("HOSTESSVIP"), to: MAUNALOA_TO },
+  "caja-superbets-tiradentes": { ...smtpFromEnv("TIRADENTES", "CAJASBVIP"), to: SUPERBETS_TO },
+  "caja-superbets-san-martin": { ...smtpFromEnv("SANMARTIN", "CAJASBVIP"), to: SUPERBETS_TO },
+};
 
 const resolveSenderConfig = (senderKey?: string): SenderCfg => {
   const key = String(senderKey || "").trim().toLowerCase();
 
-  const defaults: SenderCfg = {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-    from: process.env.EMAIL_FROM,
-    fromName: process.env.EMAIL_FROM_NAME,
-  };
-
-  const perSender: Record<string, SenderCfg> = {
-    caja: {
-      user: process.env.SMTP_USER_CAJA,
-      pass: process.env.SMTP_PASS_CAJA,
-      from: process.env.EMAIL_FROM_CAJA,
-      fromName: process.env.EMAIL_FROM_NAME_CAJA,
-    },
-    hostessvip: {
-      user: process.env.SMTP_USER_HOSTESSVIP,
-      pass: process.env.SMTP_PASS_HOSTESSVIP,
-      from: process.env.EMAIL_FROM_HOSTESSVIP,
-      fromName: process.env.EMAIL_FROM_NAME_HOSTESSVIP,
-    },
-    hostingsbvip: {
-      user: process.env.SMTP_USER_HOSTINGSBVIP || process.env.SMTP_USER_HOSTESSVIP,
-      pass: process.env.SMTP_PASS_HOSTINGSBVIP || process.env.SMTP_PASS_HOSTESSVIP,
-      from: process.env.EMAIL_FROM_HOSTINGSBVIP || process.env.EMAIL_FROM_HOSTESSVIP,
-      fromName:
-        process.env.EMAIL_FROM_NAME_HOSTINGSBVIP || process.env.EMAIL_FROM_NAME_HOSTESSVIP,
-    },
-    cajasbvip: {
-      user: process.env.SMTP_USER_CAJASBVIP,
-      pass: process.env.SMTP_PASS_CAJASBVIP,
-      from: process.env.EMAIL_FROM_CAJASBVIP,
-      fromName: process.env.EMAIL_FROM_NAME_CAJASBVIP,
-    },
-    mesas: {
-      user: process.env.SMTP_USER_MESAS,
-      pass: process.env.SMTP_PASS_MESAS,
-      from: process.env.EMAIL_FROM_MESAS,
-      fromName: process.env.EMAIL_FROM_NAME_MESAS,
-    },
-  };
-
-  return perSender[key] || defaults;
+  return (
+    AREAS[key] || {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+      from: process.env.EMAIL_FROM,
+      fromName: process.env.EMAIL_FROM_NAME,
+      to: MAUNALOA_TO,
+    }
+  );
 };
 
 const json = (data: any, status = 200, extraHeaders: Record<string, string> = {}) =>
@@ -101,7 +96,7 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { pdfBase64, filename, clientName, senderKey, to, subject, text, html } = body || {};
+    const { pdfBase64, filename, clientName, senderKey, subject, text, html } = body || {};
 
     // 1) Validaciones básicas del request
     if (!pdfBase64 || !filename) {
@@ -119,7 +114,7 @@ export async function POST(request: Request) {
     }
 
     if (pdfBuffer.byteLength > MAX_BYTES) {
-      return json({ ok: false, message: "El archivo excede el límite de 8MB.", errorId }, 413);
+      return json({ ok: false, message: "El archivo excede el límite de 3MB para correo.", errorId }, 413);
     }
 
     // 2) Resolver configuración SMTP
@@ -134,7 +129,8 @@ export async function POST(request: Request) {
 
     const fromAddress = (senderConfig.from || "").trim();
     const fromName = (senderConfig.fromName || "").trim();
-    const toAddress = String(to || process.env.EMAIL_TO || "").trim();
+    // El destinatario lo decide el servidor segun el area, nunca el navegador.
+    const toAddress = String(senderConfig.to || "").trim();
 
     // Validaciones de env/config
     if (!host || !port || !userRaw || !passClean || !fromAddress) {
@@ -144,7 +140,7 @@ export async function POST(request: Request) {
         hostPresent: Boolean(host),
         port,
         userPresent: Boolean(userRaw),
-        passClean: passClean,
+        passwordPresent: Boolean(passClean),
         fromPresent: Boolean(fromAddress),
       });
 
@@ -174,7 +170,6 @@ export async function POST(request: Request) {
       host,
       port,
       user: userRaw,
-      passClean: passClean,
       from: fromAddress,
       to: toAddress,
     });
@@ -193,30 +188,7 @@ export async function POST(request: Request) {
       tls: { rejectUnauthorized: false }, // NO recomendado
     });
 
-    // 4) Verificar conexión (diagnóstico)
-    try {
-      await transporter.verify();
-    } catch (e: any) {
-      console.error("SMTP VERIFY FAILED", {
-        errorId,
-        code: e?.code,
-        message: e?.message,
-        response: e?.response,
-        command: e?.command,
-        auth: {
-          user: userRaw,
-          pass: passClean,
-        },
-      });
-
-      // 502 porque es falla hacia un servicio externo (SMTP)
-      return json(
-        { ok: false, message: "Fallo al autenticar con el servidor SMTP.", errorId },
-        502
-      );
-    }
-
-    // 5) Preparar contenido
+    // 4) Preparar contenido
     const subjectName = String(clientName || "").trim() || "Cliente";
     const subjectDate = buildSubjectDate();
     const computedSubject = `Cedula - ${subjectName} - ${subjectDate}`;
@@ -227,7 +199,7 @@ export async function POST(request: Request) {
       `Se adjunta la cedula de: ${subjectName}\nFecha de envio: ${subjectDate}`;
     const finalHtml = typeof html === "string" && html.trim().length ? html : undefined;
 
-    // 6) Enviar
+    // 5) Enviar (sin transporter.verify(): sendMail ya autentica, y asi evitamos una conexion SMTP extra por envio)
     await transporter.sendMail({
       from,
       to: toAddress,
@@ -244,7 +216,7 @@ export async function POST(request: Request) {
     });
 
     console.log("Correo enviado con éxito a:", toAddress);
-    return json({ ok: true, message: "Correo enviado correctamente." }, 200);
+    return json({ ok: true, message: "Correo enviado correctamente.", to: toAddress }, 200);
   } catch (error: any) {
     const safeError = {
       errorId,

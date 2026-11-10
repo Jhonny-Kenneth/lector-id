@@ -13,7 +13,6 @@ type IdCapturePageProps = {
   senderKey?: string;
   title?: string;
   subtitle?: string;
-  successRecipient?: string;
   logoSrc?: string;
   logoAlt?: string;
 };
@@ -22,7 +21,6 @@ export default function IdCapturePage({
   senderKey,
   title = "Captura de cedulas USB",
   subtitle = "Captura frente y reverso desde una camara USB, genera un PDF de dos paginas y envialo por correo corporativo.",
-  successRecipient = "aelhassani@maunaloa.com.do",
   logoSrc = "https://maunaloa.com.do/wp-content/uploads/2024/05/Logo-MAunaloa-2.png",
   logoAlt = "Logo",
 }: IdCapturePageProps) {
@@ -159,6 +157,13 @@ export default function IdCapturePage({
       URL.revokeObjectURL(downloadUrl);
 
       const bytes = pdfBytes instanceof Uint8Array ? pdfBytes : safeBytes;
+      if (bytes.byteLength > 3 * 1024 * 1024) {
+        setStatus({
+          type: "error",
+          message: "El PDF supera los 3 MB permitidos para correo. Ya se descargó; reduce el tamaño de las imágenes e intenta de nuevo.",
+        });
+        return;
+      }
       const pdfBase64 = toBase64(bytes);
       const response = await fetch("/api/send", {
         method: "POST",
@@ -175,7 +180,7 @@ export default function IdCapturePage({
       }
       setStatus({
         type: "success",
-        message: `Correo enviado a ${successRecipient}.`,
+        message: data.to ? `Correo enviado a ${data.to}.` : "Correo enviado correctamente.",
       });
     } catch {
       setStatus({
