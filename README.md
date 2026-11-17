@@ -58,7 +58,7 @@ Configura en Vercel las variables SMTP indicadas arriba y las credenciales por a
 | `/mesas-maunaloa` | `_MESAS` | `EMAIL_TO` |
 | `/caja-superbets-vip` | `_CAJASBVIP` | `EMAIL_TO` |
 | `/hostess-superbets-vip` | `_HOSTESSVIP` | `EMAIL_TO` |
-| `/caja-superbets-tiradentes` | `_TIRADENTES` (si falta, usa `_CAJASBVIP`) | `EMAIL_TO_SUPERBETS` (por defecto jhonny.kenneth@superbets.do) |
+| `/caja-superbets-tiradentes` | `_TIRADENTES` (si falta, usa `_CAJASBVIP`) | `EMAIL_TO_SUPERBETS` (por defecto infocumplimiento@superbets.com) |
 | `/caja-superbets-san-martin` | `_SANMARTIN` (si falta, usa `_CAJASBVIP`) | `EMAIL_TO_SUPERBETS` |
 
 Las rutas anteriores (`/caja`, `/cajasbvip`, `/hostessvip`, `/mesas`) redirigen a las nuevas.
